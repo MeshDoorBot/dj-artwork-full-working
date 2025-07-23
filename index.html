@@ -139,11 +139,9 @@
         return label.toLowerCase().includes(term);
       }));
     });
-
     document.getElementById('showPicker').addEventListener('change', () => document.getElementById('step2').classList.add('active'));
     document.getElementById('uploadInput').addEventListener('change', e => {
-      const f = e.target.files[0]; if(!f) return;
-      const fr = new FileReader(); fr.onload = ev => {
+      const f = e.target.files[0]; if(!f) return; const fr = new FileReader(); fr.onload = ev => {
         uploadedImageDataURL = ev.target.result;
         document.getElementById('step3').classList.add('active');
         document.getElementById('generateBtn').disabled = false;
@@ -151,7 +149,6 @@
       };
       fr.readAsDataURL(f);
     });
-
     document.getElementById('generateBtn').addEventListener('click', () => { drawArtwork(); document.getElementById('step4').classList.add('active'); });
     document.getElementById('tracklistBtn').addEventListener('click', () => document.getElementById('step5').classList.add('active'));
     document.getElementById('tracklistInput').addEventListener('input', e => document.getElementById('generateTracklistBtn').disabled = !e.target.value.trim());
@@ -162,60 +159,69 @@
       const textColor = document.querySelector('input[name="textColor"]:checked').value;
       const canvas = document.getElementById('artCanvas');
       canvas.width = 1080; canvas.height = fmt === 'story' ? 1920 : 1080;
-      const ctx = canvas.getContext('2d');
-      const cw = canvas.width, ch = canvas.height, extraH = ch - 1080;
+      const ctx = canvas.getContext('2d'); const cw=canvas.width, ch=canvas.height, extraH=ch-1080;
       ctx.clearRect(0,0,cw,ch);
-      const bg = new Image(); bg.src = uploadedImageDataURL;
-      bg.onload = () => {
-        ctx.clearRect(0,0,cw,ch);
-        const scale = Math.max(cw/bg.naturalWidth, ch/bg.naturalHeight);
-        const sw = cw/scale, sh = ch/scale;
-        const sx = (bg.naturalWidth - sw)/2, sy = (bg.naturalHeight - sh)/2;
+      const bg=new Image(); bg.src=uploadedImageDataURL;
+      bg.onload=()=>{
+        const scale=Math.max(cw/bg.naturalWidth,ch/bg.naturalHeight);
+        const sw=cw/scale, sh=ch/scale;
+        const sx=(bg.naturalWidth-sw)/2, sy=(bg.naturalHeight-sh)/2;
         ctx.drawImage(bg,sx,sy,sw,sh,0,0,cw,ch);
-        if(fmt==='square'&&textColor==='black'){ drawTextAndOverlay(fmt,cw,ch,extraH,textColor); document.getElementById('downloadBtn').disabled=false; return; }
-        let cnt=0;
-        templateLayers.filter(l=>l.type==='image'&&!(fmt==='square'&&/logo\s*white/i.test(l.name))).forEach(l=>{
-          const img=new Image(); img.src=(fmt==='story'&&l.name==='Line + Site (img)')?'assets/line-+-site-story.png':l.imageURL;
-          img.onload=()=>{ ctx.globalAlpha=l.opacity||1; ctx.globalCompositeOperation='screen'; ctx.drawImage(img,(fmt==='story'&&l.name==='Line + Site (img)')?0: (l.x||0),(fmt==='story'?l.y+extraH:l.y)); if(++cnt===templateLayers.filter(l=>l.type==='image'&&!(fmt==='square'&&/logo\s*white/i.test(l.name))).length) drawTextAndOverlay(fmt,cw,ch,extraH,textColor); };
-          img.onerror=()=>{ if(++cnt===templateLayers.filter(l=>l.type==='image'&&!(fmt==='square'&&/logo\s*white/i.test(l.name))).length) drawTextAndOverlay(fmt,cw,ch,extraH,textColor); };
-        });
       };
     }
 
     function drawTextAndOverlay(fmt,cw,ch,extraH,textColor) {
-      const ctx = document.getElementById('artCanvas').getContext('2d');
-      const lines = templateLayers.filter(l=>l.type==='text');
-      const show = shows[document.getElementById('showPicker').value];
-      const gN = fmt==='story'?100:0, npN = fmt==='story'?50:0, dN = fmt==='story'?10:0, sM = fmt==='story'?1.8:1;
-      lines.forEach(l => {
-        const key = l.name.toLowerCase();
-        let txt = key.includes('now playing') ? show['Now Playing'] :
-                  key==='dj' ? show['DJ'] :
-                  key.includes('date') ? new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' @ '+show['A-B'] : '';
-        const fs = (l.size||36)*sM;
-        const fam = (key==='dj'||key.includes('date')) ? 'NeueHaasDisplayThin' : 'NeueHaasDisplayRoman';
-        ctx.font = `${fs}px '${fam}'`;
-        ctx.fillStyle = textColor;
-        let y = l.y + extraH + fs - gN;
-        if(fmt==='story') { if(key.includes('now playing')) y -= npN; if(key.includes('date')) y += dN; }
-        if(fmt==='square') y -= 17;
-        ctx.fillText(txt, l.x+12, y);
+      const ctx=document.getElementById('artCanvas').getContext('2d');
+      const lines=templateLayers.filter(l=>l.type==='text');
+      const show=shows[document.getElementById('showPicker').value];
+      const gN=fmt==='story'?100:0,npN=fmt==='story'?50:0,dN=fmt==='story'?10:0,sM=fmt==='story'?1.8:1;
+      lines.forEach(l=>{
+        let txt='';
+        const key=l.name.toLowerCase();
+        if(key.includes('now playing')) txt=show['Now Playing'];
+        else if(key==='dj') txt=show['DJ'];
+        else if(key.includes('date')) txt=new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' @ '+show['A-B'];
+        const fs=(l.size||36)*sM;
+        const fam=(key==='dj'||key.includes('date'))?'NeueHaasDisplayThin':'NeueHaasDisplayRoman';
+        ctx.font=`${fs}px '${fam}'`;
+        ctx.fillStyle=textColor;
+        let y=l.y+extraH+fs-gN;
+        if(fmt==='story'){ if(key.includes('now playing')) y-=npN; if(key.includes('date')) y+=dN; }
+        if(fmt==='square') y-=17;
+        ctx.fillText(txt,l.x+12,y);
       });
     }
 
     function overlayTracklist() {
       const fmt = document.querySelector('input[name="format"]:checked').value;
       const textColor = document.querySelector('input[name="textColor"]:checked').value;
-      const canvas = document.getElementById('artCanvas');
-      const ctx = canvas.getContext('2d');
-      const cw = canvas.width, ch = canvas.height;
-      const extraH = ch - 1080;
+      const canvas=document.getElementById('artCanvas');const ctx=canvas.getContext('2d');const cw=canvas.width,ch=canvas.height;const extraH=ch-1080;
+      const bg=new Image();bg.src=uploadedImageDataURL;bg.onload=()=>{
+        const scale=Math.max(cw/bg.naturalWidth,ch/bg.naturalHeight);const sw=cw/scale,sh=ch/scale;const sx=(bg.naturalWidth-sw)/2,sy=(bg.naturalHeight-sh)/2;
+        ctx.save();ctx.filter='blur(30px)';ctx.drawImage(bg,sx,sy,sw,sh,0,0,cw,ch);ctx.restore();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,cw,ch);
+        let overlays=[];
+        const fadeLayer=templateLayers.find(l=>l.name==='Fade (img)');if(fadeLayer)overlays.push({src:fadeLayer.imageURL,alpha:fadeLayer.opacity||1,comp:'screen'});
+        if(fmt==='story'){
+          overlays.push({src:'assets/line-+-site-story.png',alpha:1,comp:'screen'});
+        } else {
+          templateLayers.filter(l=>l.type==='image'&&!(/logo\s*white/i.test(l.name))).forEach(l=>overlays.push({src:l.imageURL,alpha:l.opacity||1,comp:'screen'}));
+          const logoSrc=textColor==='black'?'assets/black-mode.png':'assets/tracklist-overlay-logo.png';
+          overlays.push({src:logoSrc,alpha:textColor==='black'?1:0.5,comp:'screen'});
+        }
+        let done=0;overlays.forEach(o=>{const img=new Image();img.src=o.src;img.onload=()=>{ctx.save();ctx.globalAlpha=o.alpha;ctx.globalCompositeOperation=o.comp;ctx.drawImage(img,0,0,cw,ch);ctx.restore();if(++done===overlays.length){if(fmt==='story')drawTextAndOverlay(fmt,cw,ch,extraH,textColor);drawClippedTracklist(ctx,cw,ch);document.getElementById('downloadBtn').disabled=false;}};img.onerror=img.onload;});
+      };
+    }
 
-      // Blur background
-      const bg = new Image(); bg.src = uploadedImageDataURL;
-      bg.onload = () => {
-        const scale = Math.max(cw/bg.naturalWidth, ch/bg.naturalHeight);
-        const sw = cw/scale, sh = ch/scale;
-        const sx = (bg.naturalWidth - sw)/2, sy = (bg.naturalHeight - sh)/2;
-        ctx.save(); ctx.filter='blur(30px)'; ctx.drawImage(bg,...
-(replaced full document)
+    function drawClippedTracklist(ctx,cw,ch){
+      const lines=document.getElementById('tracklistInput').value.split('\n').filter(l=>l.trim());
+      if(!lines.length)return;let fontSize=30,lineHeight=fontSize*1.2;
+      if(lines.length*lineHeight>ch*0.8){fontSize=Math.floor((ch*0.8/lines.length)/1.2);lineHeight=fontSize*1.2;}
+      ctx.save();ctx.fillStyle='#fff';ctx.font=`${fontSize}px NeueHaasDisplayRoman`;ctx.textAlign='left';ctx.textBaseline='top';
+      const widths=lines.map(l=>ctx.measureText(l).width),maxW=Math.max(...widths);const startX=(cw-maxW)/2;const totalH=lineHeight*lines.length;
+      const startY=(ch-totalH)/2;lines.forEach((l,i)=>ctx.fillText(l,startX,startY+i*lineHeight));ctx.restore();
+    }
+
+    window.addEventListener('load',()=>{loadFonts().then(()=>loadTemplate().then(loadShowData));});
+  </script>
+</body>
+</html>
