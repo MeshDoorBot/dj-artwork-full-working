@@ -270,6 +270,37 @@
               const dateStr = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
               ctx.fillText(dateStr, cw/2, 20 + 36 + 5 + 28 + 5);
               ctx.restore();
+
+              // Compute tracklist left margin
+              const tlines = document.getElementById('tracklistInput').value.split('
+').filter(l => l.trim());
+              let tFont = 30;
+              let tLineH = tFont * 1.2;
+              if (tlines.length * tLineH > ch * 0.8) {
+                tFont = Math.floor((ch * 0.8 / tlines.length) / 1.2);
+                tLineH = tFont * 1.2;
+              }
+              ctx.font = `${tFont}px NeueHaasDisplayRoman`;
+              const widths = tlines.map(l => ctx.measureText(l).width);
+              const maxW = Math.max(...widths);
+              const startX = (cw - maxW) / 2;
+
+              // Left-align show info
+              ctx.save();
+              ctx.fillStyle = textColor;
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'top';
+              // Now Playing
+              ctx.font = '36px NeueHaasDisplayRoman';
+              ctx.fillText(show['Now Playing'], startX, 20);
+              // DJ
+              ctx.font = '28px NeueHaasDisplayThin';
+              ctx.fillText(show['DJ'], startX, 20 + 36 + 5);
+              // Date and A-B
+              ctx.font = '24px NeueHaasDisplayThin';
+              const dateStr = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
+              ctx.fillText(dateStr, startX, 20 + 36 + 5 + 28 + 5);
+              ctx.restore();
 // In story mode, draw show text before tracklist
               if (fmt === 'story') {
                 drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
@@ -299,6 +330,37 @@
               ctx.font = '24px NeueHaasDisplayThin';
               const dateStr = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
               ctx.fillText(dateStr, cw/2, 20 + 36 + 5 + 28 + 5);
+              ctx.restore();
+
+              // Compute tracklist left margin
+              const tlines = document.getElementById('tracklistInput').value.split('
+').filter(l => l.trim());
+              let tFont = 30;
+              let tLineH = tFont * 1.2;
+              if (tlines.length * tLineH > ch * 0.8) {
+                tFont = Math.floor((ch * 0.8 / tlines.length) / 1.2);
+                tLineH = tFont * 1.2;
+              }
+              ctx.font = `${tFont}px NeueHaasDisplayRoman`;
+              const widths = tlines.map(l => ctx.measureText(l).width);
+              const maxW = Math.max(...widths);
+              const startX = (cw - maxW) / 2;
+
+              // Left-align show info
+              ctx.save();
+              ctx.fillStyle = textColor;
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'top';
+              // Now Playing
+              ctx.font = '36px NeueHaasDisplayRoman';
+              ctx.fillText(show['Now Playing'], startX, 20);
+              // DJ
+              ctx.font = '28px NeueHaasDisplayThin';
+              ctx.fillText(show['DJ'], startX, 20 + 36 + 5);
+              // Date and A-B
+              ctx.font = '24px NeueHaasDisplayThin';
+              const dateStr = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
+              ctx.fillText(dateStr, startX, 20 + 36 + 5 + 28 + 5);
               ctx.restore();
 if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
               drawClippedTracklist(ctx, cw, ch);
@@ -336,8 +398,7 @@ if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
       const startX = (cw - maxW) / 2;
       const totalH = lineHeight * lines.length;
       const startY = (ch - totalH) / 2;
-      lines.forEach((l, i) => {
-        ctx.fillText(l, startX, startY + i * lineHeight);
+      lines.forEach((l, i) => { ctx.fillText(l, startX, startYShifted + i * lineHeight);
       });
       ctx.restore();
     }
