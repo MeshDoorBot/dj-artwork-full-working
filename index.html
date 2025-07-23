@@ -408,7 +408,11 @@ if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
 
 
     window.addEventListener('load', () => {
-      loadFonts().then(() => loadTemplate().then(loadShowData));
+    window.addEventListener('load', () => {
+      loadFonts().then(() => {
+        loadTemplate();
+        loadShowData();
+      });
     });
   </script>
 </body>
