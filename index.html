@@ -6,7 +6,7 @@
   <title>DJ Artwork & Tracklist Generator</title>
   <style>
     @font-face { font-family: 'NeueHaasDisplayRoman'; src: url('fonts/NeueHaasDisplayRoman.ttf') format('truetype'); }
-    @font-face { font-family: 'NeueHaasDisplayThin';  src: url('fonts/NeueHaasDisplayThin.ttf')  format('truetype'); }
+    @font-face { font-family: 'NeueHaasDisplayThin'; src: url('fonts/NeueHaasDisplayThin.ttf') format('truetype'); }
     body {
       background: #111;
       color: #fff;
@@ -32,16 +32,29 @@
     .step { display: none; margin-bottom: 1rem; }
     .step.active { display: block; }
     input[type="text"], textarea, select, button {
-      width: 100%; font-size: 1rem; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: none;
+      width: 100%;
+      font-size: 1rem;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: none;
     }
     textarea { height: 120px; resize: vertical; }
     button { background: #1db954; color: #fff; cursor: pointer; }
     button:disabled { background: #555; cursor: not-allowed; }
     .toggle-group {
-      display: flex; justify-content: space-between; margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
     }
     .toggle-group label {
-      flex: 1; text-align: center; background: #333; margin: 0 5px; padding: 10px; border-radius: 4px; cursor: pointer;
+      flex: 1;
+      text-align: center;
+      background: #333;
+      margin: 0 5px;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
     }
     .toggle-group input { display: none; }
     .toggle-group input:checked + label { background: #1db954; }
@@ -52,7 +65,6 @@
 <body>
   <div class="container">
     <h1>🎧 DJ Artwork & Tracklist</h1>
-    <!-- Steps -->
     <div id="step1" class="step active">
       <input type="text" id="searchInput" placeholder="Search shows…" autocomplete="off" />
       <select id="showPicker" disabled><option>Loading shows…</option></select>
@@ -62,12 +74,12 @@
     </div>
     <div id="step3" class="step">
       <div class="toggle-group">
-        <input type="radio" id="formatSquare" name="format" value="square" checked /><label for="formatSquare">Post</label>
-        <input type="radio" id="formatStory" name="format" value="story" /><label for="formatStory">Story</label>
+        <input type="radio" id="formatSquare" name="format" value="square" checked><label for="formatSquare">Post</label>
+        <input type="radio" id="formatStory" name="format" value="story"><label for="formatStory">Story</label>
       </div>
       <div class="toggle-group">
-        <input type="radio" id="textWhite" name="textColor" value="white" checked /><label for="textWhite">White Text</label>
-        <input type="radio" id="textBlack" name="textColor" value="black" /><label for="textBlack">Black Text</label>
+        <input type="radio" id="textWhite" name="textColor" value="white" checked><label for="textWhite">White Text</label>
+        <input type="radio" id="textBlack" name="textColor" value="black"><label for="textBlack">Black Text</label>
       </div>
       <button id="generateBtn" disabled>Generate Artwork</button>
       <button id="tracklistBtn" disabled>+ Tracklist</button>
@@ -113,12 +125,12 @@
       list.forEach((s,i) => {
         const d = new Date(s.Date);
         const label = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})} - ${s['Now Playing']} (${s.DJ})`;
-        const opt = document.createElement('option'); opt.value = i; opt.textContent = label; picker.appendChild(opt);
+        const opt = document.createElement('option'); opt.value = i; opt.textContent = label;
+        picker.appendChild(opt);
       });
       picker.disabled = false;
     }
 
-    // Event handlers
     document.getElementById('searchInput').addEventListener('input', () => {
       const term = document.getElementById('searchInput').value.toLowerCase();
       populateShows(shows.filter(s => {
@@ -127,7 +139,8 @@
         return label.toLowerCase().includes(term);
       }));
     });
-    document.getElementById('showPicker').addEventListener('change', ()=> document.getElementById('step2').classList.add('active'));
+
+    document.getElementById('showPicker').addEventListener('change', () => document.getElementById('step2').classList.add('active'));
     document.getElementById('uploadInput').addEventListener('change', e => {
       const f = e.target.files[0]; if(!f) return;
       const fr = new FileReader(); fr.onload = ev => {
@@ -138,6 +151,7 @@
       };
       fr.readAsDataURL(f);
     });
+
     document.getElementById('generateBtn').addEventListener('click', () => { drawArtwork(); document.getElementById('step4').classList.add('active'); });
     document.getElementById('tracklistBtn').addEventListener('click', () => document.getElementById('step5').classList.add('active'));
     document.getElementById('tracklistInput').addEventListener('input', e => document.getElementById('generateTracklistBtn').disabled = !e.target.value.trim());
@@ -148,28 +162,22 @@
       const textColor = document.querySelector('input[name="textColor"]:checked').value;
       const canvas = document.getElementById('artCanvas');
       canvas.width = 1080; canvas.height = fmt === 'story' ? 1920 : 1080;
-      const ctx = canvas.getContext('2d'), cw = canvas.width, ch = canvas.height, extraH = ch - 1080;
+      const ctx = canvas.getContext('2d');
+      const cw = canvas.width, ch = canvas.height, extraH = ch - 1080;
       ctx.clearRect(0,0,cw,ch);
       const bg = new Image(); bg.src = uploadedImageDataURL;
       bg.onload = () => {
-        // clear previous artwork to prepare full-canvas blur
-        ctx.clearRect(0, 0, cw, ch);
+        ctx.clearRect(0,0,cw,ch);
         const scale = Math.max(cw/bg.naturalWidth, ch/bg.naturalHeight);
         const sw = cw/scale, sh = ch/scale;
         const sx = (bg.naturalWidth - sw)/2, sy = (bg.naturalHeight - sh)/2;
         ctx.drawImage(bg,sx,sy,sw,sh,0,0,cw,ch);
-        if(fmt==='square' && textColor==='black') { drawTextAndOverlay(fmt,cw,ch,extraH,textColor); return; }
-        let cnt = 0;
-        const imgs = templateLayers.filter(l=>l.type==='image' && !(fmt==='square' && /logo\s*white/i.test(l.name)));
-        imgs.forEach(l => {
-          const img = new Image(); img.src = (fmt==='story'&&l.name==='Line + Site (img)') ? 'assets/line-+-site-story.png' : l.imageURL;
-          img.onload = () => {
-            ctx.globalAlpha = l.opacity || 1;
-            if(fmt==='story' && l.name==='Line + Site (img)') ctx.drawImage(img,0,0,cw,ch);
-            else { const x=l.x||0, y=(l.y||0)+((fmt==='story'&&['Fade (img)','Line + Site (img)'].includes(l.name))?extraH:0); ctx.drawImage(img,x,y); }
-            if(++cnt===imgs.length) drawTextAndOverlay(fmt,cw,ch,extraH,textColor);
-          };
-          img.onerror = () => { if(++cnt===imgs.length) drawTextAndOverlay(fmt,cw,ch,extraH,textColor); };
+        if(fmt==='square'&&textColor==='black'){ drawTextAndOverlay(fmt,cw,ch,extraH,textColor); document.getElementById('downloadBtn').disabled=false; return; }
+        let cnt=0;
+        templateLayers.filter(l=>l.type==='image'&&!(fmt==='square'&&/logo\s*white/i.test(l.name))).forEach(l=>{
+          const img=new Image(); img.src=(fmt==='story'&&l.name==='Line + Site (img)')?'assets/line-+-site-story.png':l.imageURL;
+          img.onload=()=>{ ctx.globalAlpha=l.opacity||1; ctx.globalCompositeOperation='screen'; ctx.drawImage(img,(fmt==='story'&&l.name==='Line + Site (img)')?0: (l.x||0),(fmt==='story'?l.y+extraH:l.y)); if(++cnt===templateLayers.filter(l=>l.type==='image'&&!(fmt==='square'&&/logo\s*white/i.test(l.name))).length) drawTextAndOverlay(fmt,cw,ch,extraH,textColor); };
+          img.onerror=()=>{ if(++cnt===templateLayers.filter(l=>l.type==='image'&&!(fmt==='square'&&/logo\s*white/i.test(l.name))).length) drawTextAndOverlay(fmt,cw,ch,extraH,textColor); };
         });
       };
     }
@@ -178,39 +186,23 @@
       const ctx = document.getElementById('artCanvas').getContext('2d');
       const lines = templateLayers.filter(l=>l.type==='text');
       const show = shows[document.getElementById('showPicker').value];
-      const gN = fmt==='story'?100:0, npN=fmt==='story'?50:0, dN=fmt==='story'?10:0, sM=fmt==='story'?1.8:1;
-      lines.forEach(l=>{
-        let txt = '';
+      const gN = fmt==='story'?100:0, npN = fmt==='story'?50:0, dN = fmt==='story'?10:0, sM = fmt==='story'?1.8:1;
+      lines.forEach(l => {
         const key = l.name.toLowerCase();
-        if(key.includes('now playing')) txt = show['Now Playing'];
-        else if(key==='dj') txt = show['DJ'];
-        else if(key.includes('date')) txt = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
+        let txt = key.includes('now playing') ? show['Now Playing'] :
+                  key==='dj' ? show['DJ'] :
+                  key.includes('date') ? new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' @ '+show['A-B'] : '';
         const fs = (l.size||36)*sM;
-        const fam = (key==='dj'||key.includes('date'))?'NeueHaasDisplayThin':'NeueHaasDisplayRoman';
+        const fam = (key==='dj'||key.includes('date')) ? 'NeueHaasDisplayThin' : 'NeueHaasDisplayRoman';
         ctx.font = `${fs}px '${fam}'`;
         ctx.fillStyle = textColor;
         let y = l.y + extraH + fs - gN;
-        if(fmt==='story'){ if(key.includes('now playing')) y -= npN; if(key.includes('date')) y += dN; }
+        if(fmt==='story') { if(key.includes('now playing')) y -= npN; if(key.includes('date')) y += dN; }
         if(fmt==='square') y -= 17;
         ctx.fillText(txt, l.x+12, y);
       });
-      if(fmt==='square'){
-        const ov = new Image(); ov.src = textColor==='black'?'assets/black-mode.png':'assets/logo-for-post.png';
-        ov.onload = () => {
-          ctx.save();
-          if(textColor==='black'){ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
-          else{ctx.globalAlpha=0.5;ctx.globalCompositeOperation='screen';}
-          ctx.drawImage(ov,0,0,cw,ch);
-          ctx.restore();
-          document.getElementById('downloadBtn').disabled=false;
-        };
-      } else document.getElementById('downloadBtn').disabled=false;
     }
 
-    
-    
-    
-    
     function overlayTracklist() {
       const fmt = document.querySelector('input[name="format"]:checked').value;
       const textColor = document.querySelector('input[name="textColor"]:checked').value;
@@ -225,92 +217,5 @@
         const scale = Math.max(cw/bg.naturalWidth, ch/bg.naturalHeight);
         const sw = cw/scale, sh = ch/scale;
         const sx = (bg.naturalWidth - sw)/2, sy = (bg.naturalHeight - sh)/2;
-        ctx.save(); ctx.filter='blur(30px)'; ctx.drawImage(bg,sx,sy,sw,sh,0,0,cw,ch); ctx.restore();
-
-        // Dark overlay
-        ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,cw,ch);
-
-        // Prepare overlays
-        let overlays = [];
-        if (fmt === 'story') {
-          overlays.push({ src: 'assets/line-+-site-story.png', alpha: 1, comp: 'screen' });
-        } else {
-          // Square: all image layers except logo-white
-          templateLayers.filter(l => l.type === 'image' && !(/logo\s*white/i.test(l.name))).forEach(l => {
-            overlays.push({ src: l.imageURL, alpha: l.opacity||1, comp: 'screen' });
-          });
-          let logoSrc = textColor==='black' ? 'assets/black-mode.png' : 'assets/logo-for-post.png';
-          overlays.push({ src: logoSrc, alpha: textColor==='black'?1:0.5, comp: 'screen' });
-        }
-
-        // Draw overlays sequentially, then tracklist
-        let done = 0;
-        overlays.forEach(o => {
-          const img = new Image(); img.src = o.src;
-          img.onload = () => {
-            ctx.save(); ctx.globalAlpha=o.alpha; ctx.globalCompositeOperation=o.comp;
-            ctx.drawImage(img,0,0,cw,ch); ctx.restore();
-            if (++done === overlays.length) {
-              // In story mode, draw show text before tracklist
-              if (fmt === 'story') {
-                drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
-              }
-              // Then centered, left-aligned tracklist
-              drawClippedTracklist(ctx, cw, ch);
-              document.getElementById('downloadBtn').disabled = false;
-            }
-          };
-          img.onerror = () => {
-            if (++done === overlays.length) {
-              if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
-              drawClippedTracklist(ctx, cw, ch);
-              document.getElementById('downloadBtn').disabled = false;
-            }
-          };
-        });
-      };
-    }
-
-
-
-
-
-
-    
-    
-    
-    function drawClippedTracklist(ctx, cw, ch) {
-      const lines = document.getElementById('tracklistInput').value.split('\n').filter(l => l.trim());
-      if (!lines.length) return;
-      let fontSize = 30;
-      let lineHeight = fontSize * 1.2;
-      if (lines.length * lineHeight > ch * 0.8) {
-        fontSize = Math.floor((ch * 0.8 / lines.length) / 1.2);
-        lineHeight = fontSize * 1.2;
-      }
-      ctx.save();
-      ctx.fillStyle = '#fff';
-      ctx.font = `${fontSize}px NeueHaasDisplayRoman`;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      const widths = lines.map(l => ctx.measureText(l).width);
-      const maxW = Math.max(...widths);
-      const startX = (cw - maxW) / 2;
-      const totalH = lineHeight * lines.length;
-      const startY = (ch - totalH) / 2;
-      lines.forEach((l, i) => {
-        ctx.fillText(l, startX, startY + i * lineHeight);
-      });
-      ctx.restore();
-    }
-
-
-
-
-
-    window.addEventListener('load', () => {
-      loadFonts().then(() => loadTemplate().then(loadShowData));
-    });
-  </script>
-</body>
-</html>
+        ctx.save(); ctx.filter='blur(30px)'; ctx.drawImage(bg,...
+(replaced full document)
