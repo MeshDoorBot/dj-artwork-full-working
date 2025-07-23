@@ -211,6 +211,7 @@
     
     
     
+    
     function overlayTracklist() {
       const fmt = document.querySelector('input[name="format"]:checked').value;
       const textColor = document.querySelector('input[name="textColor"]:checked').value;
@@ -225,51 +226,58 @@
         const scale = Math.max(cw/bg.naturalWidth, ch/bg.naturalHeight);
         const sw = cw/scale, sh = ch/scale;
         const sx = (bg.naturalWidth - sw)/2, sy = (bg.naturalHeight - sh)/2;
-        ctx.save(); ctx.filter='blur(30px)'; ctx.drawImage(bg,sx,sy,sw,sh,0,0,cw,ch); ctx.restore();
+        ctx.save();
+        ctx.filter = 'blur(30px)';
+        ctx.drawImage(bg, sx, sy, sw, sh, 0, 0, cw, ch);
+        ctx.restore();
 
         // Dark overlay
-        ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,cw,ch);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, 0, cw, ch);
 
-        // Prepare overlays
+        // Build overlays: fade first
         let overlays = [];
+        const fadeLayer = templateLayers.find(l => l.name === 'Fade (img)');
+        if (fadeLayer) {
+          overlays.push({ src: fadeLayer.imageURL, alpha: fadeLayer.opacity||1, comp: 'screen' });
+        }
+
+        // Then other art layers
         if (fmt === 'story') {
           overlays.push({ src: 'assets/line-+-site-story.png', alpha: 1, comp: 'screen' });
         } else {
-          // Square: all image layers except logo-white
-          templateLayers.filter(l => l.type === 'image' && !(/logo\s*white/i.test(l.name))).forEach(l => {
-            overlays.push({ src: l.imageURL, alpha: l.opacity||1, comp: 'screen' });
-          });
-          let logoSrc = textColor==='black' ? 'assets/black-mode.png' : 'assets/logo-for-post.png';
+          templateLayers
+            .filter(l => l.type === 'image' && !/logo\s*white/i.test(l.name))
+            .forEach(l => overlays.push({ src: l.imageURL, alpha: l.opacity||1, comp: 'screen' }));
+          const logoSrc = textColor==='black' ? 'assets/black-mode.png' : 'assets/logo-for-post.png';
           overlays.push({ src: logoSrc, alpha: textColor==='black'?1:0.5, comp: 'screen' });
         }
 
-        // Draw overlays sequentially, then tracklist
+        // Draw sequence
         let done = 0;
         overlays.forEach(o => {
           const img = new Image(); img.src = o.src;
           img.onload = () => {
-            ctx.save(); ctx.globalAlpha=o.alpha; ctx.globalCompositeOperation=o.comp;
-            ctx.drawImage(img,0,0,cw,ch); ctx.restore();
+            ctx.save();
+            ctx.globalAlpha = o.alpha;
+            ctx.globalCompositeOperation = o.comp;
+            ctx.drawImage(img, 0, 0, cw, ch);
+            ctx.restore();
             if (++done === overlays.length) {
-              // In story mode, draw show text before tracklist
+              // Story: draw show text first
               if (fmt === 'story') {
                 drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
               }
-              // Then centered, left-aligned tracklist
+              // Then tracklist
               drawClippedTracklist(ctx, cw, ch);
               document.getElementById('downloadBtn').disabled = false;
             }
           };
-          img.onerror = () => {
-            if (++done === overlays.length) {
-              if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
-              drawClippedTracklist(ctx, cw, ch);
-              document.getElementById('downloadBtn').disabled = false;
-            }
-          };
+          img.onerror = img.onload;
         });
       };
     }
+
 
 
 
@@ -314,4 +322,3 @@
   </script>
 </body>
 </html>
-
