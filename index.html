@@ -251,7 +251,26 @@
             ctx.save(); ctx.globalAlpha=o.alpha; ctx.globalCompositeOperation=o.comp;
             ctx.drawImage(img,0,0,cw,ch); ctx.restore();
             if (++done === overlays.length) {
-              // In story mode, draw show text before tracklist
+              
+
+              // Draw show info at top
+              const show = shows[document.getElementById('showPicker').value];
+              ctx.save();
+              ctx.fillStyle = textColor;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'top';
+              // Now Playing
+              ctx.font = '36px NeueHaasDisplayRoman';
+              ctx.fillText(show['Now Playing'], cw/2, 20);
+              // DJ
+              ctx.font = '28px NeueHaasDisplayThin';
+              ctx.fillText(show['DJ'], cw/2, 20 + 36 + 5);
+              // Date and A-B
+              ctx.font = '24px NeueHaasDisplayThin';
+              const dateStr = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
+              ctx.fillText(dateStr, cw/2, 20 + 36 + 5 + 28 + 5);
+              ctx.restore();
+// In story mode, draw show text before tracklist
               if (fmt === 'story') {
                 drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
               }
@@ -262,7 +281,26 @@
           };
           img.onerror = () => {
             if (++done === overlays.length) {
-              if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
+              
+
+              // Draw show info at top
+              const show = shows[document.getElementById('showPicker').value];
+              ctx.save();
+              ctx.fillStyle = textColor;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'top';
+              // Now Playing
+              ctx.font = '36px NeueHaasDisplayRoman';
+              ctx.fillText(show['Now Playing'], cw/2, 20);
+              // DJ
+              ctx.font = '28px NeueHaasDisplayThin';
+              ctx.fillText(show['DJ'], cw/2, 20 + 36 + 5);
+              // Date and A-B
+              ctx.font = '24px NeueHaasDisplayThin';
+              const dateStr = new Date(show.Date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + ' @ ' + show['A-B'];
+              ctx.fillText(dateStr, cw/2, 20 + 36 + 5 + 28 + 5);
+              ctx.restore();
+if (fmt === 'story') drawTextAndOverlay(fmt, cw, ch, extraH, textColor);
               drawClippedTracklist(ctx, cw, ch);
               document.getElementById('downloadBtn').disabled = false;
             }
